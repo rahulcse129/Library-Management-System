@@ -27,6 +27,19 @@ A beginner-friendly Flask application for the college practical examination.
 
 The home page provides a simple title search over sample books stored in SQLite.
 
+## Docker
+
+Build and run the application:
+
+```powershell
+docker build -t library-app .
+docker run -d -p 5000:5000 --name library-container library-app
+```
+
+Open http://localhost:5000 in a browser. Use `docker ps` to list running
+containers, `docker logs library-container` to read application logs, and
+`docker stop library-container` to stop the container.
+
 ## GitHub Actions
 
 The workflow in `.github/workflows/python-app.yml` runs when code is pushed to
