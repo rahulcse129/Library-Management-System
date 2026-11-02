@@ -26,3 +26,10 @@ A beginner-friendly Flask application for the college practical examination.
 4. Open http://localhost:5000 in a browser.
 
 The home page provides a simple title search over sample books stored in SQLite.
+
+## GitHub Actions
+
+The workflow in `.github/workflows/python-app.yml` runs when code is pushed to
+the `main` branch. It installs the dependencies and checks that `app.py` has
+valid Python syntax. Open the repository on GitHub and select **Actions** to
+see whether the workflow passed or failed.
