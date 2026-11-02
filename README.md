@@ -27,6 +27,17 @@ A beginner-friendly Flask application for the college practical examination.
 
 The home page provides a simple title search over sample books stored in SQLite.
 
+## Run PyTest
+
+Run the automated fine-calculation tests:
+
+```powershell
+pytest -v
+```
+
+The tests cover zero overdue days, five overdue days, one overdue day, and
+negative overdue days.
+
 ## Docker
 
 Build and run the application:

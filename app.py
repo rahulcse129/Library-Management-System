@@ -8,6 +8,12 @@ app = Flask(__name__)
 DATABASE = Path(__file__).with_name("library.db")
 
 
+def calculate_fine(overdue_days):
+    if overdue_days < 0:
+        raise ValueError("Overdue days cannot be negative")
+    return overdue_days * 5
+
+
 def get_books():
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
