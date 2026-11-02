@@ -1,14 +1,12 @@
 import os
 import sqlite3
-from pathlib import Path
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
-
 
 app = Flask(__name__)
 app.secret_key = "beginner-library-secret-key"
-DATABASE = Path(__file__).with_name("library.db")
+DATABASE = "library.db"
 
 
 def calculate_fine(overdue_days):
@@ -17,132 +15,90 @@ def calculate_fine(overdue_days):
     return overdue_days * 5
 
 
-def get_books():
-    connection = sqlite3.connect(DATABASE)
-    connection.row_factory = sqlite3.Row
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS books (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            author TEXT NOT NULL,
-            available INTEGER NOT NULL
+def setup_database():
+    with sqlite3.connect(DATABASE) as db:
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS books ("
+            "id INTEGER PRIMARY KEY, title TEXT, author TEXT, available INTEGER)"
         )
-        """
-    )
-
-    book_count = connection.execute("SELECT COUNT(*) FROM books").fetchone()[0]
-    if book_count == 0:
-        connection.executemany(
-            "INSERT INTO books (title, author, available) VALUES (?, ?, ?)",
-            [
-                ("The Alchemist", "Paulo Coelho", 1),
-                ("Wings of Fire", "A. P. J. Abdul Kalam", 1),
-                ("Pride and Prejudice", "Jane Austen", 0),
-            ],
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS members ("
+            "id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password TEXT)"
         )
-        connection.commit()
-
-    books = connection.execute(
-        "SELECT id, title, author, available FROM books ORDER BY title"
-    ).fetchall()
-    connection.close()
-    return books
-
-
-def create_members_table():
-    connection = sqlite3.connect(DATABASE)
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS members (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-        """
-    )
-    connection.commit()
-    connection.close()
+        if db.execute("SELECT COUNT(*) FROM books").fetchone()[0] == 0:
+            db.executemany(
+                "INSERT INTO books (title, author, available) VALUES (?, ?, ?)",
+                [
+                    ("The Alchemist", "Paulo Coelho", 1),
+                    ("Wings of Fire", "A. P. J. Abdul Kalam", 1),
+                    ("Pride and Prejudice", "Jane Austen", 0),
+                ],
+            )
 
 
 @app.route("/")
 def index():
-    search_text = request.args.get("search", "").strip()
-    books = get_books()
-
-    if search_text:
-        books = [
-            book for book in books if search_text.lower() in book["title"].lower()
-        ]
-
+    search = request.args.get("search", "").strip().lower()
+    with sqlite3.connect(DATABASE) as db:
+        db.row_factory = sqlite3.Row
+        books = db.execute("SELECT * FROM books ORDER BY title").fetchall()
+    if search:
+        books = [book for book in books if search in book["title"].lower()]
     return render_template(
         "index.html",
         books=books,
-        search_text=search_text,
+        search_text=search,
         member_name=session.get("member_name"),
     )
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    message = ""
     if request.method == "POST":
-        name = request.form["name"].strip()
-        email = request.form["email"].strip().lower()
-        password = request.form["password"]
-        create_members_table()
-
-        connection = sqlite3.connect(DATABASE)
         try:
-            connection.execute(
-                "INSERT INTO members (name, email, password) VALUES (?, ?, ?)",
-                (name, email, generate_password_hash(password)),
-            )
-            connection.commit()
+            with sqlite3.connect(DATABASE) as db:
+                db.execute(
+                    "INSERT INTO members (name, email, password) VALUES (?, ?, ?)",
+                    (
+                        request.form["name"],
+                        request.form["email"].strip().lower(),
+                        generate_password_hash(request.form["password"]),
+                    ),
+                )
         except sqlite3.IntegrityError:
-            message = "A member with this email already exists."
-            connection.close()
-            return render_template("register.html", message=message)
-        connection.close()
-        return redirect(url_for("login"))
-
-    return render_template("register.html", message=message)
+            return render_template(
+                "register.html", message="Email is already registered."
+            )
+        return redirect("/login")
+    return render_template("register.html", message="")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    message = ""
     if request.method == "POST":
-        email = request.form["email"].strip().lower()
-        password = request.form["password"]
-        create_members_table()
-
-        connection = sqlite3.connect(DATABASE)
-        member = connection.execute(
-            "SELECT name, password FROM members WHERE email = ?", (email,)
-        ).fetchone()
-        connection.close()
-
-        if member and check_password_hash(member[1], password):
+        with sqlite3.connect(DATABASE) as db:
+            member = db.execute(
+                "SELECT name, password FROM members WHERE email = ?",
+                (request.form["email"].strip().lower(),),
+            ).fetchone()
+        if member and check_password_hash(member[1], request.form["password"]):
             session["member_name"] = member[0]
-            return redirect(url_for("index"))
-        message = "Invalid email or password."
-
-    return render_template("login.html", message=message)
+            return redirect("/")
+        return render_template("login.html", message="Invalid email or password.")
+    return render_template("login.html", message="")
 
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect("/login")
 
 
 if __name__ == "__main__":
-    create_members_table()
+    setup_database()
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", "5000")),
+        port=int(os.environ.get("PORT", 5000)),
         debug=False,
         use_reloader=False,
     )
