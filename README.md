@@ -27,6 +27,8 @@ A beginner-friendly Flask application for the college practical examination.
 
 The home page provides a simple title search over sample books stored in SQLite.
 
+The member pages are available at `/register` and `/login`.
+
 ## Run PyTest
 
 Run the automated fine-calculation tests:
@@ -37,6 +39,19 @@ pytest -v
 
 The tests cover zero overdue days, five overdue days, one overdue day, and
 negative overdue days.
+
+## Run Selenium tests
+
+Install Google Chrome and make sure it is available. Selenium 4 uses Selenium
+Manager to obtain a compatible ChromeDriver automatically. Start the tests
+with:
+
+```powershell
+pytest -v tests/test_login.py
+```
+
+The Selenium test registers a temporary member, logs in with valid
+credentials, logs out, and checks the invalid-credentials message.
 
 ## Docker
 
