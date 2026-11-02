@@ -1,56 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Management System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <main class="container">
-        <h1>Library Management System</h1>
-        <p>Search for a book by title.</p>
-        {% if member_name %}
-            <p>Welcome, {{ member_name }}! <a href="{{ url_for('logout') }}">Log out</a></p>
-        {% else %}
-            <p><a href="{{ url_for('login') }}">Log in</a> | <a href="{{ url_for('register') }}">Register</a></p>
-        {% endif %}
+<!doctype html>
+<title>Library</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-        <form method="get" action="/">
-            <label for="search">Book title</label>
-            <input id="search" name="search" value="{{ search_text }}" placeholder="Enter a title">
-            <button type="submit">Search</button>
-            <a href="/">Show all books</a>
-        </form>
+<main>
+    <h1>Library Management System</h1>
+    {% if member_name %}
+        <p>Welcome, {{ member_name }}! <a href="{{ url_for('logout') }}">Log out</a></p>
+    {% else %}
+        <p><a href="{{ url_for('login') }}">Log in</a> | <a href="{{ url_for('register') }}">Register</a></p>
+    {% endif %}
 
-        {% if books %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Availability</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for book in books %}
-                        <tr>
-                            <td>{{ book["title"] }}</td>
-                            <td>{{ book["author"] }}</td>
-                            <td>
-                                {% if book["available"] %}
-                                    Available
-                                {% else %}
-                                    Issued
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="message">No books found.</p>
-        {% endif %}
-    </main>
-</body>
-</html>
+    <form>
+        <input id="search" name="search" value="{{ search_text }}" placeholder="Search by title">
+        <button>Search</button>
+        <a href="/">All books</a>
+    </form>
+
+    {% if books %}
+        <table>
+            <tr><th>Title</th><th>Author</th><th>Status</th></tr>
+            {% for book in books %}
+                <tr>
+                    <td>{{ book["title"] }}</td>
+                    <td>{{ book["author"] }}</td>
+                    <td>{{ "Available" if book["available"] else "Issued" }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="message">No books found.</p>
+    {% endif %}
+</main>

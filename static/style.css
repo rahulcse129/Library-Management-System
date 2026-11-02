@@ -1,47 +1,6 @@
-body {
-    background-color: #f4f6f8;
-    color: #222;
-    font-family: Arial, sans-serif;
-    margin: 0;
-}
-
-.container {
-    background-color: white;
-    margin: 40px auto;
-    max-width: 800px;
-    padding: 30px;
-}
-
-form {
-    margin-bottom: 25px;
-}
-
-input,
-button {
-    font-size: 1rem;
-    padding: 8px;
-}
-
-button {
-    cursor: pointer;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-th,
-td {
-    border: 1px solid #cccccc;
-    padding: 10px;
-    text-align: left;
-}
-
-th {
-    background-color: #e8eef5;
-}
-
-.message {
-    color: #a00000;
-}
+body { font: 16px Arial; margin: 40px; }
+main { max-width: 700px; margin: auto; }
+input, button { margin: 4px; padding: 8px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+.message { color: darkred; }
